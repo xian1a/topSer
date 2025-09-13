@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  # 只启动MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: topservice_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: topservice_db
+      MYSQL_USER: topservice
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
