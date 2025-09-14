@@ -1,0 +1,45 @@
+name: go-build-example
+displayName: 'Go 项目构建（带代理 & 缓存）'
+
+triggers:
+  push:
+    - matchType: PRECISE
+      branch: master
+    - matchType: PREFIX
+      branch: dev
+
+stages:
+  - name: build-stage
+    displayName: '构建阶段'
+    steps:
+      - step: golangbuild@1
+        name: build_go
+        displayName: '编译 Go 程序'
+        golangVersion: '1.25.1'     # 根据你项目实际版本
+        commands:
+          - go version
+          - export GO111MODULE=on
+          - export GOPROXY=https://goproxy.cn,direct
+          - # 若 sum server 有问题可以考虑下面这行
+          - go env -w GOSUMDB=off
+          - go mod download
+          - go build -o myapp ./cmd/myapp
+        artifactName: 'myapp_binary'
+        # 缓存 go module 目录
+        cache:
+          paths:
+            - /root/go/pkg/mod
+            - /go/pkg/mod
+            - "$GOPATH/pkg/mod"
+
+  - name: test-stage
+    displayName: '测试阶段'
+    steps:
+      - step: golangbuild@1
+        name: run_tests
+        displayName: '单元测试'
+        golangVersion: '1.18'
+        commands:
+          - export GO111MODULE=on
+          - export GOPROXY=https://goproxy.cn,direct
+          - go test ./... -v
